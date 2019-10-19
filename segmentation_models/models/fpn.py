@@ -103,6 +103,7 @@ def FPNBlock(pyramid_filters, stage):
 
 def build_fpn(
         backbone,
+        attention,
         skip_connection_layers,
         pyramid_filters=256,
         segmentation_filters=128,
