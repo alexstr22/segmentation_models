@@ -113,7 +113,7 @@ def FPNBlock(pyramid_filters,segmentation_filters, stage):
             input_tensor = pam
 
             # skip
-            pam = PAM()(skip)
+            pam = CAM()(skip)
             pam = Conv2D(pyramid_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
             pam = BatchNormalization(axis=3)(pam)
             pam = Activation('relu')(pam)
@@ -187,6 +187,13 @@ def build_fpn(
 
     # add segmentation head to each
     s5 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage5')(p5)
+    pam = PAM()(s5)
+    pam = Conv2D(pyramid_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
+    pam = BatchNormalization(axis=3)(pam)
+    pam = Activation('relu')(pam)
+    pam = Dropout(0.5)(pam)
+    s5 = Conv2D(pyramid_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
+
     s4 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage4')(p4)
     s3 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage3')(p3)
     s2 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage2')(p2)
