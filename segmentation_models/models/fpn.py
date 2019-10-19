@@ -117,9 +117,9 @@ def FPNBlock(pyramid_filters,segmentation_filters, stage):
             cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
 
             input_tensor = add([pam, cam])
-            input_tensor = Dropout(0.5)(input_tensor)
-            input_tensor = Conv2d_BN(input_tensor, segmentation_filters, 1)
-                        
+            # input_tensor = Dropout(0.5)(input_tensor)
+            # input_tensor = Conv2d_BN(input_tensor, segmentation_filters, 1)
+
             # input_tensor  = attention(input_tensor,segmentation_filters)
         x = layers.UpSampling2D((2, 2), name=up_name)(input_tensor)
         x = layers.Add(name=add_name)([x, skip])
