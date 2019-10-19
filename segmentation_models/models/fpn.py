@@ -117,7 +117,7 @@ def build_fpn(
         backbone,
         attention,
         skip_connection_layers,
-        pyramid_filters=256
+        pyramid_filters=256,
         segmentation_filters=128,
         classes=1,
         activation='sigmoid',
