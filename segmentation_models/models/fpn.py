@@ -94,7 +94,7 @@ def DoubleConv3x3BnReLU(filters, use_batchnorm, name=None):
     return wrapper
 
 
-def FPNBlock(pyramid_filters, stage,segmentation_filters):
+def FPNBlock(pyramid_filters,segmentation_filters, stage):
     conv0_name = 'fpn_stage_p{}_pre_conv'.format(stage)
     conv1_name = 'fpn_stage_p{}_conv'.format(stage)
     add_name = 'fpn_stage_p{}_add'.format(stage)
