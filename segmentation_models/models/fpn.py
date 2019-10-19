@@ -210,6 +210,7 @@ def FPN(
         pyramid_use_batchnorm=True,
         pyramid_aggregation='concat',
         pyramid_dropout=None,
+        attention=False,
         **kwargs
 ):
     """FPN_ is a fully convolution neural network for image semantic segmentation
@@ -257,6 +258,7 @@ def FPN(
 
     model = build_fpn(
         backbone=backbone,
+        attention=attention,
         skip_connection_layers=encoder_features,
         pyramid_filters=pyramid_block_filters,
         segmentation_filters=pyramid_block_filters // 2,
