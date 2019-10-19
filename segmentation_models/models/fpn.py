@@ -31,6 +31,27 @@ def get_submodules():
 #  Blocks
 # ---------------------------------------------------------------------
 
+    def attention(input_x,segmentation_filters)
+        pam = PAM()(input_x)
+        pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
+        pam = BatchNormalization(axis=3)(pam)
+        pam = Activation('relu')(pam)
+        pam = Dropout(0.5)(pam)
+        pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
+
+        cam = CAM()(input_x)
+        cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
+        cam = BatchNormalization(axis=3)(cam)
+        cam = Activation('relu')(cam)
+        cam = Dropout(0.5)(cam)
+        cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
+
+        input_x = add([pam, cam])
+        input_x = Dropout(0.5)(input_x)
+        input_x = Conv2d_BN(input_x, segmentation_filters, 1)
+        return input_x
+
+
 def Conv2d_BN(x, nb_filter, kernel_size, strides=(1, 1), padding='same', use_activation=True):
     x = Conv2D(nb_filter, kernel_size, padding=padding, strides=strides, kernel_initializer='he_normal')(x)
     x = BatchNormalization(axis=3)(x)
@@ -73,7 +94,7 @@ def DoubleConv3x3BnReLU(filters, use_batchnorm, name=None):
     return wrapper
 
 
-def FPNBlock(pyramid_filters, stage):
+def FPNBlock(pyramid_filters, stage,segmentation_filters):
     conv0_name = 'fpn_stage_p{}_pre_conv'.format(stage)
     conv1_name = 'fpn_stage_p{}_conv'.format(stage)
     add_name = 'fpn_stage_p{}_add'.format(stage)
@@ -101,6 +122,8 @@ def FPNBlock(pyramid_filters, stage):
             name=conv1_name,
         )(skip)
 
+        if stage = 5:
+            input_tensor  = attention(input_tensor,segmentation_filters)
         x = layers.UpSampling2D((2, 2), name=up_name)(input_tensor)
         x = layers.Add(name=add_name)([x, skip])
 
@@ -137,30 +160,10 @@ def build_fpn(
 
 
 
-    p5 = FPNBlock(pyramid_filters, stage=5)(x, skips[0])
-
-    if attention:
-        pam = PAM()(p5)
-        pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
-        pam = BatchNormalization(axis=3)(pam)
-        pam = Activation('relu')(pam)
-        pam = Dropout(0.5)(pam)
-        pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
-
-        cam = CAM()(p5)
-        cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
-        cam = BatchNormalization(axis=3)(cam)
-        cam = Activation('relu')(cam)
-        cam = Dropout(0.5)(cam)
-        cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
-
-        p5 = add([pam, cam])
-        p5 = Dropout(0.5)(p5)
-        p5 = Conv2d_BN(p5, segmentation_filters, 1)
-
-    p4 = FPNBlock(pyramid_filters, stage=4)(p5, skips[1])
-    p3 = FPNBlock(pyramid_filters, stage=3)(p4, skips[2])
-    p2 = FPNBlock(pyramid_filters, stage=2)(p3, skips[3])
+    p5 = FPNBlock(pyramid_filters, stage=5,segmentation_filters)(x, skips[0])
+    p4 = FPNBlock(pyramid_filters, stage=4,segmentation_filters)(p5, skips[1])
+    p3 = FPNBlock(pyramid_filters, stage=3,segmentation_filters)(p4, skips[2])
+    p2 = FPNBlock(pyramid_filters, stage=2,segmentation_filters)(p3, skips[3])
 
     # add attention here s5 input
     # s5 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage5')(p5)
