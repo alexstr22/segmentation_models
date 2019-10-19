@@ -101,7 +101,7 @@ def FPNBlock(pyramid_filters,segmentation_filters, stage):
             name=conv1_name,
         )(skip)
 
-        if (stage == 5) or (stage == 4):
+        if stage == 5:
             # input_tensor
             pam = PAM()(input_tensor)
             pam = Conv2D(pyramid_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
