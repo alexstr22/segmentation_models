@@ -113,7 +113,7 @@ def FPNBlock(pyramid_filters,segmentation_filters, stage):
             input_tensor = pam
 
             # skip
-            pam = CAM()(skip)
+            pam = PAM()(skip)
             pam = Conv2D(pyramid_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
             pam = BatchNormalization(axis=3)(pam)
             pam = Activation('relu')(pam)
