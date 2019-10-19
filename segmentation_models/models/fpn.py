@@ -160,10 +160,10 @@ def build_fpn(
 
 
 
-    p5 = FPNBlock(pyramid_filters, stage=5,segmentation_filters)(x, skips[0])
-    p4 = FPNBlock(pyramid_filters, stage=4,segmentation_filters)(p5, skips[1])
-    p3 = FPNBlock(pyramid_filters, stage=3,segmentation_filters)(p4, skips[2])
-    p2 = FPNBlock(pyramid_filters, stage=2,segmentation_filters)(p3, skips[3])
+    p5 = FPNBlock(pyramid_filters,segmentation_filters, stage=5)(x, skips[0])
+    p4 = FPNBlock(pyramid_filters,segmentation_filters, stage=4)(p5, skips[1])
+    p3 = FPNBlock(pyramid_filters,segmentation_filters, stage=3)(p4, skips[2])
+    p2 = FPNBlock(pyramid_filters,segmentation_filters, stage=2)(p3, skips[3])
 
     # add attention here s5 input
     # s5 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage5')(p5)
