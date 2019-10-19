@@ -122,7 +122,7 @@ def FPNBlock(pyramid_filters, stage,segmentation_filters):
             name=conv1_name,
         )(skip)
 
-        if stage = 5:
+        if stage == 5:
             input_tensor  = attention(input_tensor,segmentation_filters)
         x = layers.UpSampling2D((2, 2), name=up_name)(input_tensor)
         x = layers.Add(name=add_name)([x, skip])
