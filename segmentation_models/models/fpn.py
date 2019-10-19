@@ -133,34 +133,55 @@ def build_fpn(
               else backbone.get_layer(index=i).output for i in skip_connection_layers])
 
     # build FPN pyramid
-    p5 = FPNBlock(pyramid_filters, stage=5)(x, skips[0])
-    p4 = FPNBlock(pyramid_filters, stage=4)(p5, skips[1])
-    p3 = FPNBlock(pyramid_filters, stage=3)(p4, skips[2])
-    p2 = FPNBlock(pyramid_filters, stage=2)(p3, skips[3])
 
-    # add attention here s5 input
-    s5 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage5')(p5)
+
     if attention:
-        pam = PAM()(s5)
+        pam = PAM()(x)
         pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
         pam = BatchNormalization(axis=3)(pam)
         pam = Activation('relu')(pam)
         pam = Dropout(0.5)(pam)
         pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
 
-        cam = CAM()(s5)
+        cam = CAM()(x)
         cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
         cam = BatchNormalization(axis=3)(cam)
         cam = Activation('relu')(cam)
         cam = Dropout(0.5)(cam)
         cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
 
-        s5 = add([pam, cam])
-        s5 = Dropout(0.5)(s5)
-        s5 = Conv2d_BN(s5, segmentation_filters, 1)
+        x = add([pam, cam])
+        x = Dropout(0.5)(x)
+        x = Conv2d_BN(x, segmentation_filters, 1)
+
+    p5 = FPNBlock(pyramid_filters, stage=5)(x, skips[0])
+    p4 = FPNBlock(pyramid_filters, stage=4)(p5, skips[1])
+    p3 = FPNBlock(pyramid_filters, stage=3)(p4, skips[2])
+    p2 = FPNBlock(pyramid_filters, stage=2)(p3, skips[3])
+
+    # add attention here s5 input
+    # s5 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage5')(p5)
+    # if attention:
+    #     pam = PAM()(s5)
+    #     pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
+    #     pam = BatchNormalization(axis=3)(pam)
+    #     pam = Activation('relu')(pam)
+    #     pam = Dropout(0.5)(pam)
+    #     pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
+    #
+    #     cam = CAM()(s5)
+    #     cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
+    #     cam = BatchNormalization(axis=3)(cam)
+    #     cam = Activation('relu')(cam)
+    #     cam = Dropout(0.5)(cam)
+    #     cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
+    #
+    #     s5 = add([pam, cam])
+    #     s5 = Dropout(0.5)(s5)
+    #     s5 = Conv2d_BN(s5, segmentation_filters, 1)
 
     # add segmentation head to each
-    # s5 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage5')(p5)
+    s5 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage5')(p5)
     s4 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage4')(p4)
     s3 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage3')(p3)
     s2 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage2')(p2)
