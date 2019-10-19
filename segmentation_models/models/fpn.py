@@ -147,7 +147,7 @@ def build_fpn(
 
         s5 = add([pam, cam])
         s5 = Dropout(0.5)(s5)
-        s5 = Conv2d_BN(s5, segmentation_filters, 1)
+        s5 = Conv2dBn(s5, segmentation_filters, 1)
 
     # add segmentation head to each
     # s5 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage5')(p5)
