@@ -31,6 +31,16 @@ def get_submodules():
 #  Blocks
 # ---------------------------------------------------------------------
 
+def Conv2d_BN(x, nb_filter, kernel_size, strides=(1, 1), padding='same', use_activation=True):
+    x = Conv2D(nb_filter, kernel_size, padding=padding, strides=strides, kernel_initializer='he_normal')(x)
+    x = BatchNormalization(axis=3)(x)
+    if use_activation:
+        x = Activation('relu')(x)
+        return x
+    else:
+        return x
+
+
 def Conv3x3BnReLU(filters, use_batchnorm, name=None):
     kwargs = get_submodules()
 
@@ -147,7 +157,7 @@ def build_fpn(
 
         s5 = add([pam, cam])
         s5 = Dropout(0.5)(s5)
-        s5 = Conv2dBn(s5, segmentation_filters, 1)
+        s5 = Conv2d_BN(s5, segmentation_filters, 1)
 
     # add segmentation head to each
     # s5 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage5')(p5)
