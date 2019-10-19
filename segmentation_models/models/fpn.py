@@ -110,14 +110,7 @@ def FPNBlock(pyramid_filters,segmentation_filters, stage):
             pam = Dropout(0.5)(pam)
             pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
 
-            cam = CAM()(input_tensor)
-            cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
-            cam = BatchNormalization(axis=3)(cam)
-            cam = Activation('relu')(cam)
-            cam = Dropout(0.5)(cam)
-            cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
-
-            input_tensor = add([pam, cam])
+            input_tensor = pam
             # skip
             pam = PAM()(skip)
             pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
@@ -126,15 +119,8 @@ def FPNBlock(pyramid_filters,segmentation_filters, stage):
             pam = Dropout(0.5)(pam)
             pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
 
-            cam = CAM()(skip)
-            cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
-            cam = BatchNormalization(axis=3)(cam)
-            cam = Activation('relu')(cam)
-            cam = Dropout(0.5)(cam)
-            cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
+            skip = pam
 
-            skip = add([pam, cam])
-            
             # input_tensor = Dropout(0.5)(input_tensor)
             # input_tensor = Conv2d_BN(input_tensor, segmentation_filters, 1)
 
