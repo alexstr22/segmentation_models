@@ -122,6 +122,27 @@ def FPNBlock(pyramid_filters,segmentation_filters, stage):
             name=conv1_name,
         )(skip)
 
+
+        def attention(input_x,segmentation_filters):
+            pam = PAM()(input_x)
+            pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
+            pam = BatchNormalization(axis=3)(pam)
+            pam = Activation('relu')(pam)
+            pam = Dropout(0.5)(pam)
+            pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
+
+            cam = CAM()(input_x)
+            cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
+            cam = BatchNormalization(axis=3)(cam)
+            cam = Activation('relu')(cam)
+            cam = Dropout(0.5)(cam)
+            cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
+
+            input_x = add([pam, cam])
+            input_x = Dropout(0.5)(input_x)
+            input_x = Conv2d_BN(input_x, segmentation_filters, 1)
+            return input_x
+        
         if stage == 5:
             input_tensor  = attention(input_tensor,segmentation_filters)
         x = layers.UpSampling2D((2, 2), name=up_name)(input_tensor)
@@ -156,9 +177,6 @@ def build_fpn(
               else backbone.get_layer(index=i).output for i in skip_connection_layers])
 
     # build FPN pyramid
-
-
-
 
     p5 = FPNBlock(pyramid_filters,segmentation_filters, stage=5)(x, skips[0])
     p4 = FPNBlock(pyramid_filters,segmentation_filters, stage=4)(p5, skips[1])
