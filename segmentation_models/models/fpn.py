@@ -4,6 +4,8 @@ from ._common_blocks import Conv2dBn
 from ._utils import freeze_model
 from ..backbones.backbones_factory import Backbones
 
+from .attentions.attention import PAM, CAM
+
 backend = None
 layers = None
 models = None
@@ -123,11 +125,33 @@ def build_fpn(
     p3 = FPNBlock(pyramid_filters, stage=3)(p4, skips[2])
     p2 = FPNBlock(pyramid_filters, stage=2)(p3, skips[3])
 
-    # add segmentation head to each
+    # add attention here s5 input
     s5 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage5')(p5)
+    if attention:
+        pam = PAM()(s5)
+        pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
+        pam = BatchNormalization(axis=3)(pam)
+        pam = Activation('relu')(pam)
+        pam = Dropout(0.5)(pam)
+        pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
+
+        cam = CAM()(s5)
+        cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
+        cam = BatchNormalization(axis=3)(cam)
+        cam = Activation('relu')(cam)
+        cam = Dropout(0.5)(cam)
+        cam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(cam)
+
+        s5 = add([pam, cam])
+        s5 = Dropout(0.5)(s5)
+        s5 = Conv2d_BN(s5, segmentation_filters, 1)
+
+    # add segmentation head to each
+    # s5 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage5')(p5)
     s4 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage4')(p4)
     s3 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage3')(p3)
     s2 = DoubleConv3x3BnReLU(segmentation_filters, use_batchnorm, name='segm_stage2')(p2)
+
 
     # upsampling to same resolution
     s5 = layers.UpSampling2D((8, 8), interpolation='nearest', name='upsampling_stage5')(s5)
