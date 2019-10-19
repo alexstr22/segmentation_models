@@ -31,7 +31,7 @@ def get_submodules():
 #  Blocks
 # ---------------------------------------------------------------------
 
-    def attention(input_x,segmentation_filters)
+    def attention(input_x,segmentation_filters):
         pam = PAM()(input_x)
         pam = Conv2D(segmentation_filters, 3, padding='same', use_bias=False, kernel_initializer='he_normal')(pam)
         pam = BatchNormalization(axis=3)(pam)
